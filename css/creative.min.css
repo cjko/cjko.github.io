@@ -41,6 +41,17 @@ p {
     line-height: 1.5;
     margin-bottom: 20px;
 }
+.skill-tags {
+        margin-left:10px;
+    }
+.skill-tag {
+    background-color:#ecebeb;
+    border-radius:3px;
+    font-size: 13px;
+    display:inline-block;
+    padding:4px 8px;
+    margin-top: 4px;
+}
 .link {
 	color: #5aa3f4;
 	border-bottom: 1px dotted;
@@ -107,6 +118,9 @@ p {
 }
 .mb {
 	margin-bottom: 25px;
+}
+.mt {
+    margin-top: 25px;
 }
 .bg-primary {
     background-color: #ecebeb!important;
