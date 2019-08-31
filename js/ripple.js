@@ -1,562 +1,665 @@
-// https://github.com/bsehovac/shader-program
+function getRandomFloat(min, max) {
+    return Math.random() * (max - min) + min;
+}
 
-class ShaderProgram {
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
-    constructor( holder, options = {} ) {
-  
-      options = Object.assign( {
-        antialias: false,
-        depthTest: false,
-        mousemove: false,
-        autosize: true,
-        side: 'front',
-        vertex: `
-          precision highp float;
-  
-          attribute vec4 a_position;
-          attribute vec4 a_color;
-  
-          uniform float u_time;
-          uniform vec2 u_resolution;
-          uniform vec2 u_mousemove;
-          uniform mat4 u_projection;
-  
-          varying vec4 v_color;
-  
-          void main() {
-  
-            gl_Position = u_projection * a_position;
-            gl_PointSize = (10.0 / gl_Position.w) * 100.0;
-  
-            v_color = a_color;
-  
-          }`,
-        fragment: `
-          precision highp float;
-  
-          uniform sampler2D u_texture;
-          uniform int u_hasTexture;
-  
-          varying vec4 v_color;
-  
-          void main() {
-  
-            if ( u_hasTexture == 1 ) {
-  
-              gl_FragColor = v_color * texture2D(u_texture, gl_PointCoord);
-  
-            } else {
-  
-              gl_FragColor = v_color;
-  
+function cycle(value, total) {
+    return (value % total + total) % total;
+}
+
+//*‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡/
+// Entity
+//*‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡*/
+
+class Entity {
+    dpr = window.devicePixelRatio || 1;
+    toValue = value => value * this.dpr;
+    draw = () => {};
+    update = () => {};
+}
+
+//*‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡/
+// Point
+//*‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡*/
+
+class Point {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    get position() {
+        return [this.x, this.y];
+    }
+
+    clone() {
+        return new Point(this.x, this.y);
+    }
+
+    delta(point) {
+        return [this.x - point.x, this.y - point.y];
+    }
+
+    distance(point) {
+        const dx = point.x - this.x;
+        const dy = point.y - this.y;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    moveTo(x, y) {
+        this.x = x;
+        this.y = y;
+        return this;
+    }
+
+    moveAtAngle(angle, distance) {
+        this.x += Math.cos(angle) * distance;
+        this.y += Math.sin(angle) * distance;
+        return this;
+    }
+
+    applyVelocity(velocity) {
+        this.x += velocity.vx;
+        this.y += velocity.vy;
+        return this;
+    }
+
+    angleRadians(point) {
+        // radians = atan2(deltaY, deltaX)
+        const y = point.y - this.y;
+        const x = point.x - this.x;
+        return Math.atan2(y, x);
+    }
+
+    angleDeg(point) {
+        // degrees = atan2(deltaY, deltaX) * (180 / PI)
+        const y = point.y - this.y;
+        const x = point.x - this.x;
+        return Math.atan2(y, x) * (180 / Math.PI);
+    }
+
+    rotate(origin, radians) {
+        // rotate the point around a given origin point
+        const cos = Math.cos(radians);
+        const sin = Math.sin(radians);
+        this.x =
+            cos * (this.x - origin.x) + sin * (this.y - origin.y) + origin.x;
+        this.y =
+            cos * (this.y - origin.y) - sin * (this.x - origin.x) + origin.y;
+        return this;
+    }
+}
+
+
+//*‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡/
+// Bounds
+//*‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡*/
+
+class Bounds {
+    constructor(x, y, w, h) {
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
+        const hw = w / 2;
+        const hh = h / 2;
+        this.center = new Point(hw, hh);
+        this.position = new Point(x, y);
+    }
+
+    get params() {
+        return [this.x, this.y, this.w, this.h];
+    }
+
+    offsetOuter(offset) {
+        const [x, y, w, h] = this.params;
+        return new Bounds(
+            x - offset,
+            y - offset,
+            w + offset * 2,
+            h + offset * 2
+        );
+    }
+
+    offsetInner(offset) {
+        const [x, y, w, h] = this.params;
+        return new Bounds(
+            x + offset,
+            y + offset,
+            w - offset * 2,
+            h - offset * 2
+        );
+    }
+}
+
+//*‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡/
+// Background
+//*‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡*/
+
+class Background extends Entity {
+    drawText({ ctx, canvas }) {
+        const ms = Math.min(canvas.width, canvas.height);
+        const size = ms / 15;
+
+        const copy = 'Waves';
+        const x = canvas.width / 2;
+        const y = canvas.height / 3 + size / 3;
+        ctx.font = `700 italic ${size}px futura, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#edb07b';
+        ctx.fillText(copy, x, y);
+    }
+
+    drawGradient({ ctx, canvas, bounds }) {
+        // const gradient = ctx.createLinearGradient(...bounds.params);
+        // gradient.addColorStop(0, '#333');
+        // gradient.addColorStop(1, '#222');
+
+        // ctx.fillStyle = gradient;
+        ctx.fillStyle = '#252f3d';
+        // ctx.globalAlpha = 0.9;
+        ctx.fillRect(...bounds.params);
+        // ctx.globalAlpha = 1;
+    }
+
+    draw = context => {
+        this.drawGradient(context);
+        // this.drawText(context);
+    };
+}
+
+//*‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡/
+// Canvas
+//*‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡*/
+
+class Canvas {
+    constructor({ canvas, entities = [], pointer }) {
+        // setup a canvas
+        this.canvas = canvas;
+        this.dpr = window.devicePixelRatio || 1;
+        this.ctx = canvas.getContext('2d');
+        this.ctx.scale(this.dpr, this.dpr);
+
+        // tick counter
+        this.tick = 0;
+
+        // entities to be drawn on the canvas
+        this.entities = entities;
+
+        // track mouse/touch movement
+        this.pointer = pointer || null;
+
+        // setup and run
+        this.setCanvasSize();
+        this.setupListeners();
+        this.render();
+
+        // demo pointer
+        this.pointer.addPointerModifier((pointer, tick) => {
+            const cx = window.innerWidth / 2 * this.dpr;
+            const cy = window.innerHeight / 2 * this.dpr;
+
+            // const dx = window.innerWidth / 3 * this.dpr;
+            const dy = window.innerHeight / 4 * this.dpr;
+
+            const offX = cx;
+            const offY = cy + Math.cos(-tick / 20) * dy;
+
+            pointer.lastPosition.moveTo(pointer.position.x, pointer.position.y);
+            pointer.position.moveTo(offX, offY);
+        });
+    }
+
+    setupListeners() {
+        window.addEventListener('resize', this.setCanvasSize);
+    }
+
+    setCanvasSize = () => {
+        const { innerWidth: w, innerHeight: h } = window;
+        const w2 = w * this.dpr;
+        const h2 = h * this.dpr;
+        this.canvas.width = w2;
+        this.canvas.height = h2;
+        this.canvas.style.width = w + 'px';
+        this.canvas.style.height = h + 'px';
+        this.bounds = new Bounds(0, 0, w2, h2);
+    };
+
+    addEntity = newEntity => {
+        this.entities = [...this.entities, newEntity];
+        return this.entities.length - 1;
+    };
+
+    removeEntity(deleteIndex) {
+        this.entities = this.entities.filter((el, i) => i !== deleteIndex);
+        return this.entities;
+    }
+
+    removeDead() {
+        this.entities = this.entities.filter(({ dead = false }) => !dead);
+    }
+
+    render = () => {
+        // Main loop
+
+        // Draw and Update items here.
+        this.entities.forEach(({ draw, update }) => {
+            draw(this);
+            update(this);
+        });
+
+        // update pointer for demos
+        this.pointer.update(this);
+
+        // Cleanup "dead" entities
+        this.removeDead();
+
+        ++this.tick;
+        window.requestAnimationFrame(this.render);
+    };
+}
+
+
+//*‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡/
+// Cursor
+//*‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡*/
+
+class Cursor extends Entity {
+    constructor(radius) {
+        super();
+        this.radius = this.toValue(radius);
+        this.pi2 = Math.PI * 2;
+        this.lineWidth = this.toValue(2);
+        this.strokeStyle = '#7bc4a2';
+    }
+
+    draw = ({ ctx, pointer }) => {
+        ctx.strokeStyle = this.strokeStyle;
+        ctx.lineWidth = this.lineWidth;
+        ctx.beginPath();
+        ctx.arc(
+            pointer.position.x,
+            pointer.position.y,
+            this.radius,
+            0,
+            this.pi2,
+            true
+        );
+        ctx.closePath();
+        ctx.stroke();
+    };
+}
+
+//*‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡/
+// Pointer
+//*‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡*/
+
+class Pointer {
+    constructor() {
+        this.dpr = window.devicePixelRatio || 1;
+        this.delta;
+        this.lastPosition = new Point(0, 0);
+        this.position = new Point(0, 0);
+        this.addListeners();
+    }
+
+    delta() {
+        return this.position.delta(this.lastPosition);
+    }
+
+    addListeners() {
+        ['mousemove', 'touchmove'].forEach((event, touch) => {
+            window.addEventListener(
+                event,
+                e => {
+                    // move previous point
+                    const { x: px, y: py } = this.position;
+
+                    // disable the demo modifier if it's been added
+                    if (this.modifier) {
+                        this.modifier = null;
+                    }
+
+                    if (touch) {
+                        e.preventDefault();
+                        const x = e.targetTouches[0].clientX * this.dpr;
+                        const y = e.targetTouches[0].clientY * this.dpr;
+                        this.position.moveTo(x, y);
+                        this.lastPosition.moveTo(px, py);
+                    } else {
+                        const x = e.clientX * this.dpr;
+                        const y = e.clientY * this.dpr;
+                        this.position.moveTo(x, y);
+                        this.lastPosition.moveTo(px, py);
+                    }
+                },
+                false
+            );
+        });
+    }
+
+    addPointerModifier(modifier) {
+        this.modifier = modifier;
+    }
+
+    update = ({ tick }) => {
+        this.modifier && this.modifier(this, tick);
+    };
+}
+
+
+//*‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡/
+// PolyWave
+//*‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡*/
+
+class PolyWave extends Entity {
+    constructor({ verts, color, elasticity, damping }) {
+        super();
+        this.verts = verts; // corners
+        this.color = color;
+        this.points = [];
+        this.resolution = 50;
+        this.elasticity = elasticity;
+        this.damping = damping;
+
+        this.constructPolyWave();
+        this.setAttractors();
+    }
+
+    constructPolyWave() {
+        for (let i = 0; i < this.verts.length; i++) {
+            const p1 = this.verts[i];
+            const p2 = this.verts[i + 1];
+
+            if (p1 && p2) {
+                const [dx, dy] = p2.point.delta(p1.point);
+                const distance = p2.point.distance(p1.point);
+                const amount = distance / this.resolution;
+                const pointAmt = Math.round(amount);
+
+                const offX = dx / pointAmt;
+                const offY = dy / pointAmt;
+
+                if (p1.isSpring) {
+                    for (let k = 1; k <= pointAmt; k++) {
+                        // debugger;
+                        const x = p1.point.x + offX * k;
+                        const y = p1.point.y + offY * k;
+                        const point = new Spring({
+                            x,
+                            y,
+                            elasticity: this.elasticity,
+                            damping: this.damping,
+                            isFixed: k === 0 || k === pointAmt,
+                        });
+                        this.points.push(point);
+                    }
+                } else {
+                    this.points.push(
+                        new Spring({
+                            x: p2.point.x,
+                            y: p2.point.y,
+                            isFixed: true,
+                        })
+                    );
+                }
             }
-  
-          }`,
-        uniforms: {},
-        buffers: {},
-        camera: {},
-        texture: null,
-        onUpdate: ( () => {} ),
-        onResize: ( () => {} ),
-      }, options )
-  
-      const uniforms = Object.assign( {
-        time: { type: 'float', value: 0 },
-        hasTexture: { type: 'int', value: 0 },
-        resolution: { type: 'vec2', value: [ 0, 0 ] },
-        mousemove: { type: 'vec2', value: [ 0, 0 ] },
-        projection: { type: 'mat4', value: [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ] },
-      }, options.uniforms )
-  
-      const buffers = Object.assign( {
-        position: { size: 3, data: [] },
-        color: { size: 4, data: [] },
-      }, options.buffers )
-  
-      const camera = Object.assign( {
-        fov: 60,
-        near: 1,
-        far: 10000,
-        aspect: 1,
-        z: 100,
-        perspective: true,
-      }, options.camera )
-  
-      const canvas = document.createElement( 'canvas' )
-      const gl = canvas.getContext( 'webgl', { antialias: options.antialias } )
-  
-      if ( ! gl ) return false
-  
-      this.count = 0
-      this.gl = gl
-      this.canvas = canvas
-      this.camera = camera
-      this.holder = holder
-      this.onUpdate = options.onUpdate
-      this.onResize = options.onResize
-      this.data = {}
-  
-      holder.appendChild( canvas )
-  
-      this.createProgram( options.vertex, options.fragment )
-  
-      this.createBuffers( buffers )
-      this.createUniforms( uniforms )
-  
-      this.updateBuffers()
-      this.updateUniforms()
-  
-      this.createTexture( options.texture )
-  
-      gl.enable( gl.BLEND )
-      gl.enable( gl.CULL_FACE )
-      gl.blendFunc( gl.SRC_ALPHA, gl.ONE )
-      gl[ options.depthTest ? 'enable' : 'disable' ]( gl.DEPTH_TEST )
-  
-      if ( options.autosize )
-        window.addEventListener( 'resize', e => this.resize( e ), false )
-      if ( options.mousemove )
-        window.addEventListener( 'mousemove', e => this.mousemove( e ), false )
-  
-      this.resize()
-  
-      this.update = this.update.bind( this )
-      this.time = { start: performance.now(), old: performance.now() }
-      this.update()
-  
-    }
-  
-    mousemove( e ) {
-  
-      let x = e.pageX / this.width * 2 - 1
-      let y = e.pageY / this.height * 2 - 1
-  
-      this.uniforms.mousemove = [ x, y ]
-  
-    }
-  
-    resize( e ) {
-  
-      const holder = this.holder
-      const canvas = this.canvas
-      const gl = this.gl
-  
-      const width = this.width = holder.offsetWidth
-      const height = this.height = holder.offsetHeight
-      const aspect = this.aspect = width / height
-      const dpi = this.dpi = devicePixelRatio
-  
-      canvas.width = width * dpi
-      canvas.height = height * dpi
-      canvas.style.width = width + 'px'
-      canvas.style.height = height + 'px'
-  
-      gl.viewport( 0, 0, width * dpi, height * dpi )
-      gl.clearColor( 0, 0, 0, 0 )
-  
-      this.uniforms.resolution = [ width, height ]
-      this.uniforms.projection = this.setProjection( aspect )
-  
-      this.onResize( width, height, dpi )
-  
-    }
-  
-    setProjection( aspect ) {
-  
-      const camera = this.camera
-  
-      if ( camera.perspective ) {
-  
-        camera.aspect = aspect
-  
-        const fovRad = camera.fov * ( Math.PI / 180 )
-        const f = Math.tan( Math.PI * 0.5 - 0.5 * fovRad )
-        const rangeInv = 1.0 / ( camera.near - camera.far )
-  
-        const matrix = [
-          f / camera.aspect, 0, 0, 0,
-          0, f, 0, 0,
-          0, 0, (camera.near + camera.far) * rangeInv, -1,
-          0, 0, camera.near * camera.far * rangeInv * 2, 0
-        ]
-  
-        matrix[ 14 ] += camera.z
-        matrix[ 15 ] += camera.z
-  
-        return matrix
-  
-      } else {
-  
-        return [
-           2 / this.width, 0, 0, 0,
-           0, -2 / this.height, 0, 0,
-           0, 0, 1, 0,
-          -1, 1, 0, 1,
-        ]
-  
-      }
-  
-    }
-  
-    createShader( type, source ) {
-  
-      const gl = this.gl
-      const shader = gl.createShader( type )
-  
-      gl.shaderSource( shader, source )
-      gl.compileShader( shader )
-  
-      if ( gl.getShaderParameter (shader, gl.COMPILE_STATUS ) ) {
-  
-        return shader
-  
-      } else {
-  
-        console.log( gl.getShaderInfoLog( shader ) )
-        gl.deleteShader( shader )
-  
-      }
-  
-    }
-  
-    createProgram( vertex, fragment ) {
-  
-      const gl = this.gl
-  
-      const vertexShader = this.createShader( gl.VERTEX_SHADER, vertex )
-      const fragmentShader = this.createShader( gl.FRAGMENT_SHADER, fragment )
-  
-      const program = gl.createProgram()
-  
-      gl.attachShader( program, vertexShader )
-      gl.attachShader( program, fragmentShader )
-      gl.linkProgram( program )
-  
-      if ( gl.getProgramParameter( program, gl.LINK_STATUS ) ) {
-  
-        gl.useProgram( program )
-        this.program = program
-  
-      } else {
-  
-        console.log( gl.getProgramInfoLog( program ) )
-        gl.deleteProgram( program )
-  
-      }
-  
-    }
-  
-    createUniforms( data ) {
-  
-      const gl = this.gl
-      const uniforms = this.data.uniforms = data
-      const values = this.uniforms = {}
-  
-      Object.keys( uniforms ).forEach( name => {
-  
-        const uniform = uniforms[ name ]
-  
-        uniform.location = gl.getUniformLocation( this.program, 'u_' + name )
-  
-        Object.defineProperty( values, name, {
-          set: value => {
-  
-            uniforms[ name ].value = value
-            this.setUniform( name, value )
-  
-          },
-          get: () => uniforms[ name ].value
-        } )
-  
-      } )
-  
-    }
-  
-    setUniform( name, value ) {
-  
-      const gl = this.gl
-      const uniform = this.data.uniforms[ name ]
-  
-      uniform.value = value
-  
-      switch ( uniform.type ) {
-        case 'int': {
-          gl.uniform1i( uniform.location, value )
-          break
         }
-        case 'float': {
-          gl.uniform1f( uniform.location, value )
-          break
+    }
+
+    setAttractors() {
+        this.points.forEach((p, i) => {
+            const isLast = i === this.points.length - 1;
+            const isFirst = i === 0;
+            if (isLast) {
+                const prevPoint = this.points[i - 1];
+                const nextPoint = this.points[0];
+                !p.isFixed && p.addAttractor(prevPoint);
+                !p.isFixed && p.addAttractor(nextPoint);
+            } else if (isFirst) {
+                const prevPoint = this.points[this.points.length - 1];
+                const nextPoint = this.points[i + 1];
+                !p.isFixed && p.addAttractor(prevPoint);
+                !p.isFixed && p.addAttractor(nextPoint);
+            } else {
+                const prevPoint = this.points[i - 1];
+                const nextPoint = this.points[i + 1];
+                !p.isFixed && p.addAttractor(prevPoint);
+                !p.isFixed && p.addAttractor(nextPoint);
+            }
+        });
+    }
+
+    draw = ({ ctx, bounds }) => {
+        ctx.beginPath();
+
+        this.points.forEach(point => {
+            ctx.lineTo(point.x, point.y);
+        });
+
+        ctx.closePath();
+
+        ctx.fillStyle = this.color;
+        ctx.lineWidth = this.toValue(2);
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        ctx.globalCompositeOperation = 'screen';
+        ctx.globalAlpha = 0.5;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = 'source-over';
+    };
+
+    update = context => {
+        this.points.forEach(point => point.update(context));
+    };
+}
+
+//*‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡/
+// Spring
+//*‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡*/
+
+// defaults and constants
+const ELASTICITY = 0.05; // elastic force toward the origin
+const DAMPING = 0.4;
+const MASS = 16;
+const ADJACENT_SPRING_CONSTANT = 0.12;
+
+const DPR = window.devicePixelRatio || 1;
+
+class Spring extends Point {
+    constructor({
+        x,
+        y,
+        isFixed,
+        mass = MASS,
+        elasticity = ELASTICITY,
+        damping = DAMPING,
+    }) {
+        super(x, y);
+        this.ox = x; // original origin x, never changes
+        this.oy = y; // original origin y, never changes
+        this.vx = 0; // velocity x
+        this.vy = 0; // velocity y
+        this.fx = 0; // force x
+        this.fy = 0; // force y
+
+        this.isFixed = isFixed; // indeicates whether this point can be moved
+
+        // spring constants
+        this.mass = mass;
+        this.elasticity = elasticity;
+        this.damping = damping;
+    }
+
+    applyForce(x, y) {
+        this.fx += x;
+        this.fy += y;
+    }
+
+    attractors = []; // just testing
+
+    addAttractor(point) {
+        this.attractors = [...this.attractors, point];
+    }
+
+    setAdjacentForces() {
+        // currently unused, was testing out an
+        this.attractors.forEach((point, i) => {
+            const { x, y } = point;
+
+            const force = { x: 0, y: 0 }; // prev point force
+            const { x: x1, y: y1 } = point;
+            const { x: x2, y: y2 } = this;
+
+            force.x = x1 - x2;
+            force.y = y1 - y2;
+
+            // apply adjacent forces to current spring
+            this.applyForce(force.x, force.y);
+        });
+    }
+
+    applyForceFromMouse(pointer) {
+        const { x, y } = pointer.position;
+
+        const distance = this.distance(pointer.position);
+
+        if (distance < MOUSE_RADIUS) {
+            const [dx, dy] = pointer.delta();
+            const power = (1 - distance / MOUSE_RADIUS) * MOUSE_STRENGTH;
+
+            this.applyForce(dx * power, dy * power);
         }
-        case 'vec2': {
-          gl.uniform2f( uniform.location, ...value )
-          break
-        }
-        case 'vec3': {
-          gl.uniform3f( uniform.location, ...value )
-          break
-        }
-        case 'vec4': {
-          gl.uniform4f( uniform.location, ...value )
-          break
-        }
-        case 'mat2': {
-          gl.uniformMatrix2fv( uniform.location, false, value )
-          break
-        }
-        case 'mat3': {
-          gl.uniformMatrix3fv( uniform.location, false, value )
-          break
-        }
-        case 'mat4': {
-          gl.uniformMatrix4fv( uniform.location, false, value )
-          break
-        }
-      }
-  
-      // ivec2       : uniform2i,
-      // ivec3       : uniform3i,
-      // ivec4       : uniform4i,
-      // sampler2D   : uniform1i,
-      // samplerCube : uniform1i,
-      // bool        : uniform1i,
-      // bvec2       : uniform2i,
-      // bvec3       : uniform3i,
-      // bvec4       : uniform4i,
-  
     }
-  
-    updateUniforms() {
-  
-      const gl = this.gl
-      const uniforms = this.data.uniforms
-  
-      Object.keys( uniforms ).forEach( name => {
-  
-        const uniform = uniforms[ name ]
-  
-        this.uniforms[ name ] = uniform.value
-  
-      } )
-  
+
+    setSpringForce() {
+        // force to origin, difference multiplied by elasticity constant
+        const fx = (this.ox - this.x) * this.elasticity;
+        const fy = (this.oy - this.y) * this.elasticity;
+
+        // sum forces
+        this.fx += fx;
+        this.fy += fy;
     }
-  
-    createBuffers( data ) {
-  
-      const gl = this.gl
-      const buffers = this.data.buffers = data
-      const values = this.buffers = {}
-  
-      Object.keys( buffers ).forEach( name => {
-  
-        const buffer = buffers[ name ]
-  
-        buffer.buffer = this.createBuffer( 'a_' + name, buffer.size )
-  
-        Object.defineProperty( values, name, {
-          set: data => {
-  
-            buffers[ name ].data = data
-            this.setBuffer( name, data )
-  
-            if ( name == 'position' )
-              this.count = buffers.position.data.length / 3
-  
-          },
-          get: () => buffers[ name ].data
-        } )
-  
-      } )
-  
+
+    solveVelocity() {
+        if (this.fx === 0 && this.fy === 0) return;
+
+        // acceleration = force / mass;
+        const ax = this.fx / this.mass;
+        const ay = this.fy / this.mass;
+
+        // velocity, apply damping then ad acceleration
+        this.vx = this.damping * this.vx + ax;
+        this.vy = this.damping * this.vy + ay;
+
+        // add velocity to center and top/left
+        this.x += this.vx;
+        this.y += this.vy;
+
+        // reset any applied forces
+        this.fx = 0;
+        this.fy = 0;
     }
-  
-    createBuffer( name, size ) {
-  
-      const gl = this.gl
-      const program = this.program
-  
-      const index = gl.getAttribLocation( program, name )
-      const buffer = gl.createBuffer()
-  
-      gl.bindBuffer( gl.ARRAY_BUFFER, buffer )
-      gl.enableVertexAttribArray( index )
-      gl.vertexAttribPointer( index, size, gl.FLOAT, false, 0, 0 )
-  
-      return buffer
-  
-    }
-  
-    setBuffer( name, data ) {
-  
-      const gl = this.gl
-      const buffers = this.data.buffers
-  
-      if ( name == null && ! gl.bindBuffer( gl.ARRAY_BUFFER, null ) ) return
-  
-      gl.bindBuffer( gl.ARRAY_BUFFER, buffers[ name ].buffer )
-      gl.bufferData( gl.ARRAY_BUFFER, new Float32Array( data ), gl.STATIC_DRAW )
-  
-    }
-  
-    updateBuffers() {
-  
-      const gl = this.gl
-      const buffers = this.buffers
-  
-      Object.keys( buffers ).forEach( name =>
-        buffers[ name ] = buffer.data
-      )
-  
-      this.setBuffer( null )
-  
-    }
-  
-    createTexture( src ) {
-  
-      const gl = this.gl
-      const texture = gl.createTexture()
-  
-      gl.bindTexture( gl.TEXTURE_2D, texture )
-      gl.texImage2D( gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array( [ 0, 0, 0, 0 ] ) )
-  
-      this.texture = texture
-  
-      if ( src ) {
-  
-        this.uniforms.hasTexture = 1
-        this.loadTexture( src )
-  
-      }
-  
-    }
-  
-    loadTexture( src ) {
-  
-      const gl = this.gl
-      const texture = this.texture
-  
-      const textureImage = new Image()
-  
-      textureImage.onload = () => {
-  
-        gl.bindTexture( gl.TEXTURE_2D, texture )
-  
-        gl.texImage2D( gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textureImage )
-  
-        gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR )
-        gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR )
-  
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-  
-        // gl.generateMipmap( gl.TEXTURE_2D )
-  
-      }
-  
-      textureImage.src = src
-  
-    }
-  
-    update() {
-  
-      const gl = this.gl
-  
-      const now = performance.now()
-      const elapsed = ( now - this.time.start ) / 5000
-      const delta = now - this.time.old
-      this.time.old = now
-  
-      this.uniforms.time = elapsed
-  
-      if ( this.count > 0 ) {
-        gl.clear( gl.COLORBUFFERBIT )
-        gl.drawArrays( gl.POINTS, 0, this.count )
-      }
-  
-      this.onUpdate( delta )
-  
-      requestAnimationFrame( this.update )
-  
-    }
-  
-  }
-  
-  const pointSize = 2.5
-  
-  const waves = new ShaderProgram( document.querySelector( '.waves' ), {
-    texture: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAb1BMVEUAAAD///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////8v0wLRAAAAJHRSTlMAC/goGvDhmwcExrVjWzrm29TRqqSKenRXVklANSIUE8mRkGpv+HOfAAABCElEQVQ4y4VT13LDMAwLrUHteO+R9f/fWMfO6dLaPeKVEECRxOULWsEGpS9nULDwia2Y+ALqUNbAWeg775zv+sA4/FFRMxt8U2FZFCVWjR/YrH4/H9sarclSKdPMWKzb8VsEeHB3m0shkhVCyNzeXeAQ9Xl4opEieX2QCGnwGbj6GMyjw9t1K0fK9YZunPXeAGsfJtYjwzxaBnozGGorYz0ypK2HzQSYx1y8DgSRo2ewOiyh2QWOEk1Y9OrQV0a8TiBM1a8eMHWYnRMy7CZ4t1CmyRkhSUvP3gRXyHOCLBxNoC3IJv//ZrJ/kxxUHPUB+6jJZZHrpg6GOjnqaOmzp4NDR48OLxn/H27SRQ08S0ZJAAAAAElFTkSuQmCC',
-    uniforms: {
-      size: { type: 'float', value: pointSize },
-      field: { type: 'vec3', value: [ 0, 0, 0 ] },
-      speed: { type: 'float', value: 5 },
-    },
-    vertex: `
-      #define M_PI 3.1415926535897932384626433832795
-  
-      precision highp float;
-  
-      attribute vec4 a_position;
-      attribute vec4 a_color;
-  
-      uniform float u_time;
-      uniform float u_size;
-      uniform float u_speed;
-      uniform vec3 u_field;
-      uniform mat4 u_projection;
-  
-      varying vec4 v_color;
-  
-      void main() {
-  
-        vec3 pos = a_position.xyz;
-  
-        pos.y += (
-          cos(pos.x / u_field.x * M_PI * 8.0 + u_time * u_speed) +
-          sin(pos.z / u_field.z * M_PI * 8.0 + u_time * u_speed)
-        ) * u_field.y;
-  
-        gl_Position = u_projection * vec4( pos.xyz, a_position.w );
-        gl_PointSize = ( u_size / gl_Position.w ) * 100.0;
-  
-        v_color = a_color;
-  
-      }`,
-    fragment: `
-      precision highp float;
-  
-      uniform sampler2D u_texture;
-  
-      varying vec4 v_color;
-  
-      void main() {
-  
-        gl_FragColor = v_color * texture2D(u_texture, gl_PointCoord);
-  
-      }`,
-    onResize( w, h, dpi ) {
-  
-      const position = [], color = []
-  
-      const width = 400 * ( w / h )
-      const depth = 400
-      const height = 3
-      const distance = 5
-  
-      for ( let x = 0; x < width; x += distance ) {
-        for ( let z = 0; z < depth; z+= distance ) {
-  
-          position.push( - width / 2 + x, -30, -depth / 2 + z )
-          color.push( 0, 1 - ( x / width ) * 1, 0.5 + x / width * 0.5, z / depth )
-  
-        }
-      }
-  
-      this.uniforms.field = [ width, height, depth ]
-  
-      this.buffers.position = position
-      this.buffers.color = color
-  
-      this.uniforms.size = ( h / 400) * pointSize * dpi
-  
-    },
-  } )
+
+    update = ({ pointer }) => {
+        if (this.isFixed) return;
+        this.applyForceFromMouse(pointer);
+        this.setSpringForce();
+        this.setAdjacentForces();
+
+        this.solveVelocity();
+    };
+
+    draw = ({ ctx }) => {
+        // temporary, just to see what's happening
+        const { x, y } = this;
+        ctx.fillStyle = 'white';
+        ctx.lineWidth = 5;
+        ctx.fillRect(x - 2, y - 2, 4, 4);
+        // ctx.beginPath();
+        // ctx.arc(x, y, 4, 0, Math.PI * 2, true);
+        // ctx.closePath();
+        // ctx.stroke();
+    };
+}
+
+const MOUSE_STRENGTH = 1; // 0 - 1
+const MOUSE_RADIUS = 200 * DPR;
+
+
+const colors = [
+    // '#0b132b',
+    // '#1c2541',
+    // '#3a506b',
+    // '#5bc0be',
+    // '#ffffff',
+
+    // '#cad2c5',
+    // '#84a98c',
+    // '#52796f',
+    // '#354f52',
+    // '#2f3e46',
+
+    
+    '#52489c',
+    '#4062bb',
+    '#59c3c3',
+    '#ebebeb',
+    '#f45b69',
+];
+
+const center = new Point(
+    window.innerWidth / 2 * DPR,
+    window.innerHeight / 2 * DPR
+);
+
+const createWaves = amount =>
+    Array(amount)
+        .fill(null)
+        .map((_, i) => {
+            const size = 40 * (amount - i) * DPR;
+            const points = 6 + (amount - i);
+            const verts = [
+                {
+                    point: new Point(0, window.innerHeight * DPR / 2),
+                    isSpring: true,
+                },
+                {
+                    point: new Point(
+                        window.innerWidth * DPR,
+                        window.innerHeight * DPR / 2
+                    ),
+                },
+                {
+                    point: new Point(
+                        window.innerWidth * DPR,
+                        window.innerHeight * DPR
+                    ),
+                },
+                {
+                    point: new Point(0, window.innerHeight * DPR),
+                },
+            ];
+
+            const cdx = cycle(i, colors.length);
+            return new PolyWave({
+                verts: [...verts, verts[0]],
+                elasticity: getRandomFloat(0.1, 0.2),
+                damping: getRandomFloat(0.88, 0.90),
+                color: colors[cdx],
+            });
+        });
+
+// Kick off
+const canvas = new Canvas({
+    canvas: document.getElementById('canvas'),
+    pointer: new Pointer(),
+    // entities: [new Background(), ...createWaves(4), new Cursor(10)],
+    entities: [new Background(), ...createWaves(4)],
+});
