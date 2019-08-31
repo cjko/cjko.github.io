@@ -515,3 +515,15 @@ animation-duration:2s;
 	40% {transform: translateY(-10px);}
 	60% {transform: translateY(-5px);}
 }
+
+
+.whoa {
+    background: url('../img/whoa.gif');
+    background-size: contain;
+    background-position: top left;
+    -webkit-background-clip: text;
+    color: transparent;
+    font-size: 5rem;
+    font-weight: bold;
+    font-family: sans-serif;
+  }

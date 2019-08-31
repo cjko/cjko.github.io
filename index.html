@@ -28,13 +28,19 @@
   </head>
 
   <body id="page-top" style="background: #0f0f0f;">
-
-    <div class="d-flex justify-content-center align-items-center flex-column" style="height: 100vh; color: #fff;">
-      <img src="./img/icon.png" class="mb-3" style="position: absolute; right: 16px; top: 16px; height: 48px;">
-      <h1 class="font-weight-bold">COLIN JAO</h1>
-      <span style="color: #aaa;" class="mb-4">SOFTWARE ENGINEER</span>
-      <a class="btn btn-primary btn-xl sr-icons" href="me/Colin_Jao_CV.pdf" target="_blank">View My Resume</a>
+    <!-- Top right logo -->
+    <img src="./img/icon.png" class="mb-3" style="position: absolute; right: 16px; top: 16px; height: 48px;">
+    <!-- Full screen div -->
+    <div class="d-flex justify-content-center align-items-center" style="width: 100vw; height: 100vh;">
+      <!-- <canvas id="canvas"></canvas> -->
+      <div class="waves" style="width: 100vw; height: 100vh;"></div>
+      <div class="d-flex flex-column align-items-center" style="position:absolute; color: #fff;">
+        <h1 class="font-weight-bold">COLIN JAO</h1>
+        <span style="color: #aaa;" class="mb-4">SOFTWARE ENGINEER</span>
+        <a class="btn btn-primary btn-xl sr-icons" href="me/Colin_Jao_CV.pdf" target="_blank">View My Resume</a>
+      </div>
     </div>
+
 
     <div hidden>
 
@@ -332,9 +338,7 @@
 
     <!-- Custom scripts for this template -->
     <script src="js/creative.min.js"></script>
-
-    
-
+    <script src="js/ripple.js"></script>
   </body>
 
 </html>
