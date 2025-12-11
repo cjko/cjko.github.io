@@ -1,4 +1,70 @@
-<div
-  style="width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; font-family: monospace;">
-  <h1 style="font-size: 4rem; font-weight: 800">200 OK</h1>
-</div>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Colin Jao</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: monospace;
+    }
+
+    .green-dot {
+      display: inline-block;
+      width: 25px;
+      height: 25px;
+      background-color: #2ECC40;
+      border-radius: 50%;
+      margin-right: 2rem;
+    }
+
+    .status {
+      animation-name: blink;
+      animation-duration: 2s;
+      animation-timing-function: linear;
+      display: flex;
+      align-items: center;
+    }
+
+    .status-text {
+      font-size: 3rem;
+      font-weight: 800;
+      margin: 0;
+    }
+
+    @keyframes blink {
+
+      25%,
+      75% {
+        opacity: 0;
+      }
+
+      0%,
+      50%,
+      100% {
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="status">
+      <span class="green-dot"></span>
+      <h1 class="status-text">200 OK</h1>
+    </div>
+  </div>
+</body>
+
+</html>
