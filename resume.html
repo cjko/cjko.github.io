@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Colin Jao - Software Engineer</title>
+    <link rel="shortcut icon" href="logo3-black.png" type="image/png">
+    <link rel="icon" href="logo3-black.png" type="image/png">
+    <script>
+        // Apply saved theme before paint to avoid a flash. No saved choice = follow system.
+        (function () {
+            var t = localStorage.getItem("theme");
+            if (t === "light" || t === "dark") {
+                document.documentElement.setAttribute("data-theme", t);
+            }
+        })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* ---- Dark theme (default) ---- */
+        :root {
+            color-scheme: dark;
+            --card: rgba(255, 255, 255, 0.04);
+            --border: rgba(255, 255, 255, 0.09);
+            --border-focus: rgba(120, 160, 255, 0.55);
+            --text: #f3f5f9;
+            --text-muted: #9aa3b2;
+            --accent: #5b8cff;
+            --accent-2: #8a6bff;
+            --error: #ff6b6b;
+            --success: #4ade80;
+            --page-bg:
+                radial-gradient(900px 600px at 85% -10%, rgba(91, 140, 255, 0.18), transparent 60%),
+                radial-gradient(800px 600px at 0% 110%, rgba(138, 107, 255, 0.16), transparent 55%),
+                linear-gradient(160deg, #0b0d12 0%, #11141c 100%);
+            --card-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+            --input-bg: rgba(255, 255, 255, 0.03);
+            --input-bg-focus: rgba(255, 255, 255, 0.05);
+            --placeholder: #5d6675;
+            --toggle-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+        }
+
+        /* ---- Light theme variables ---- */
+        :root[data-theme="light"] {
+            color-scheme: light;
+            --card: rgba(255, 255, 255, 0.78);
+            --border: rgba(15, 23, 42, 0.1);
+            --border-focus: rgba(91, 140, 255, 0.6);
+            --text: #1a2233;
+            --text-muted: #5b6472;
+            --accent: #4f7cff;
+            --accent-2: #7c5cff;
+            --error: #d93a3a;
+            --success: #16a34a;
+            --page-bg:
+                radial-gradient(900px 600px at 85% -10%, rgba(91, 140, 255, 0.16), transparent 60%),
+                radial-gradient(800px 600px at 0% 110%, rgba(138, 107, 255, 0.14), transparent 55%),
+                linear-gradient(160deg, #f6f8fc 0%, #eaeef6 100%);
+            --card-shadow: 0 24px 60px rgba(40, 60, 110, 0.16);
+            --input-bg: rgba(255, 255, 255, 0.6);
+            --input-bg-focus: #ffffff;
+            --placeholder: #9aa3b2;
+            --toggle-shadow: 0 8px 20px rgba(40, 60, 110, 0.14);
+        }
+
+        /* Follow system setting when the user hasn't picked a theme */
+        @media (prefers-color-scheme: light) {
+            :root:not([data-theme="dark"]) {
+                color-scheme: light;
+                --card: rgba(255, 255, 255, 0.78);
+                --border: rgba(15, 23, 42, 0.1);
+                --border-focus: rgba(91, 140, 255, 0.6);
+                --text: #1a2233;
+                --text-muted: #5b6472;
+                --accent: #4f7cff;
+                --accent-2: #7c5cff;
+                --error: #d93a3a;
+                --success: #16a34a;
+                --page-bg:
+                    radial-gradient(900px 600px at 85% -10%, rgba(91, 140, 255, 0.16), transparent 60%),
+                    radial-gradient(800px 600px at 0% 110%, rgba(138, 107, 255, 0.14), transparent 55%),
+                    linear-gradient(160deg, #f6f8fc 0%, #eaeef6 100%);
+                --card-shadow: 0 24px 60px rgba(40, 60, 110, 0.16);
+                --input-bg: rgba(255, 255, 255, 0.6);
+                --input-bg-focus: #ffffff;
+                --placeholder: #9aa3b2;
+                --toggle-shadow: 0 8px 20px rgba(40, 60, 110, 0.14);
+            }
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            min-height: 100%;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: var(--text);
+            background: var(--page-bg);
+            background-attachment: fixed;
+            min-height: 100vh;
+            min-height: 100dvh;
+            transition: color 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* Extra top padding clears the avatar that overhangs the card's top edge */
+            padding: 84px 20px 32px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 560px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 76px 38px 32px;
+            position: relative;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            box-shadow: var(--card-shadow);
+            animation: rise 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        @keyframes rise {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .wordmark {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            color: var(--text);
+            margin-bottom: 14px;
+        }
+
+        .card-avatar {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-sizing: content-box;
+            width: 124px;
+            height: 124px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--border);
+            background: var(--card);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.16);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            color: var(--text);
+            background: rgba(74, 222, 128, 0.12);
+            border: 1px solid rgba(74, 222, 128, 0.3);
+            padding: 6px 12px;
+            border-radius: 999px;
+            margin-bottom: 14px;
+        }
+
+        .badge .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.6);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%   { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.5); }
+            70%  { box-shadow: 0 0 0 7px rgba(74, 222, 128, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+        }
+
+        h1 {
+            font-size: 1.65rem;
+            font-weight: 800;
+            line-height: 1.15;
+            margin: 0 0 8px;
+            letter-spacing: -0.02em;
+        }
+
+        h1 .grad {
+            background: linear-gradient(100deg, var(--accent), var(--accent-2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin: 0 0 20px;
+        }
+
+        #formWrap { text-align: center; }
+
+        form { display: flex; flex-direction: column; gap: 13px; text-align: left; }
+
+        .field { display: flex; flex-direction: column; gap: 7px; }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 13px;
+        }
+
+        label {
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        input, select, textarea {
+            font-family: inherit;
+            font-size: 0.95rem;
+            color: var(--text);
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 11px 15px;
+            outline: none;
+            transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+            width: 100%;
+        }
+
+        input::placeholder, textarea::placeholder { color: var(--placeholder); }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--border-focus);
+            background: var(--input-bg-focus);
+            box-shadow: 0 0 0 4px rgba(91, 140, 255, 0.12);
+        }
+
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%239aa3b2' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            padding-right: 38px;
+            cursor: pointer;
+        }
+
+        select option { color: #000; }
+
+        textarea { resize: vertical; min-height: 80px; }
+
+        .honey { position: absolute; left: -9999px; opacity: 0; height: 0; width: 0; }
+
+        button {
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+            background: linear-gradient(100deg, var(--accent), var(--accent-2));
+            border: none;
+            border-radius: 12px;
+            padding: 13px;
+            margin-top: 4px;
+            cursor: pointer;
+            transition: transform 0.12s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+            box-shadow: 0 10px 26px rgba(91, 140, 255, 0.32);
+        }
+
+        button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 14px 32px rgba(91, 140, 255, 0.42); }
+        button:active:not(:disabled) { transform: translateY(0); }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .footer {
+            margin-top: 18px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .footer a { color: var(--text); text-decoration: none; border-bottom: 1px solid var(--border); }
+        .footer a:hover { border-color: var(--accent); }
+
+        .status {
+            font-size: 0.88rem;
+            margin-top: 4px;
+            min-height: 1em;
+        }
+        .status.error { color: var(--error); }
+
+        /* Success state */
+        .success-state { text-align: center; animation: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        .success-state .check {
+            width: 64px; height: 64px;
+            margin: 0 auto 22px;
+            border-radius: 50%;
+            background: rgba(74, 222, 128, 0.12);
+            border: 1px solid rgba(74, 222, 128, 0.4);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem; color: var(--success);
+        }
+        .success-state h2 { font-size: 1.5rem; font-weight: 700; margin: 0 0 10px; }
+        .success-state p { color: var(--text-muted); margin: 0; line-height: 1.55; }
+        .hidden { display: none; }
+
+        /* ---- Theme toggle ---- */
+        .theme-toggle {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            cursor: pointer;
+            transition: transform 0.14s ease, border-color 0.18s ease, color 0.18s ease, background 0.25s ease;
+            z-index: 20;
+        }
+        .theme-toggle:hover { color: var(--text); border-color: var(--border-focus); }
+        .theme-toggle:active { transform: scale(0.94); }
+        .theme-toggle svg { width: 19px; height: 19px; }
+
+        /* Show the icon for the action the button performs (effective theme aware) */
+        .icon-sun { display: block; }
+        .icon-moon { display: none; }
+        @media (prefers-color-scheme: light) {
+            :root:not([data-theme="dark"]) .icon-sun { display: none; }
+            :root:not([data-theme="dark"]) .icon-moon { display: block; }
+        }
+        :root[data-theme="light"] .icon-sun { display: none; }
+        :root[data-theme="light"] .icon-moon { display: block; }
+        :root[data-theme="dark"] .icon-sun { display: block; }
+        :root[data-theme="dark"] .icon-moon { display: none; }
+
+        @media (max-width: 520px) {
+            body {
+                /* Top padding clears the overhanging avatar; sides tightened for small screens */
+                padding: 70px 14px 22px;
+                /* Fixed backgrounds are janky on mobile Safari — let it scroll */
+                background-attachment: scroll;
+            }
+            .card {
+                padding: 64px 22px 26px;
+                border-radius: 20px;
+            }
+            .card-avatar {
+                width: 104px;
+                height: 104px;
+            }
+            .row { grid-template-columns: 1fr; }
+            h1 { font-size: 1.5rem; }
+            .subtitle { font-size: 0.92rem; }
+            /* 16px input text prevents iOS auto-zoom on focus */
+            input, select, textarea { font-size: 16px; }
+            .theme-toggle {
+                top: 12px;
+                right: 12px;
+                width: 40px;
+                height: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="card">
+        <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle light and dark mode" title="Toggle light / dark mode">
+            <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="4"></circle>
+                <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+            </svg>
+            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+        </button>
+        <img class="card-avatar" src="me.jpg" alt="Colin Jao">
+        <div id="formWrap">
+            <div class="wordmark">Colin Jao</div>
+            <span class="badge"><span class="dot"></span> Open to new opportunities</span>
+            <h1>Let's build something <span class="grad">great</span> together.</h1>
+            <p class="subtitle">Have a role, project, or idea in mind? Send a few details and I'll get back to you.</p>
+
+            <form id="contactForm" novalidate>
+                <div class="row">
+                    <div class="field">
+                        <label for="name">Name</label>
+                        <input id="name" name="name" type="text" placeholder="Jane Doe" required autocomplete="name">
+                    </div>
+                    <div class="field">
+                        <label for="email">Email</label>
+                        <input id="email" name="email" type="email" placeholder="jane@company.com" required autocomplete="email">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="field">
+                        <label for="company">Company <span style="opacity:.6">(optional)</span></label>
+                        <input id="company" name="company" type="text" placeholder="Acme Inc." autocomplete="organization">
+                    </div>
+                    <div class="field">
+                        <label for="type">Opportunity type</label>
+                        <select id="type" name="opportunity_type">
+                            <option>Full-time role</option>
+                            <option>Contract</option>
+                            <option>Something else</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="message">Message</label>
+                    <textarea id="message" name="message" placeholder="Tell me about the opportunity — role, team, tech stack, timeline…" required></textarea>
+                </div>
+
+                <!-- Honeypot: bots fill this, humans never see it -->
+                <input class="honey" type="text" name="_honey" tabindex="-1" autocomplete="off">
+
+                <button id="submitBtn" type="submit">Send inquiry</button>
+                <div id="status" class="status"></div>
+            </form>
+
+            <p class="footer">Based in Dallas, TX · Resume available upon request</p>
+        </div>
+
+        <div id="successState" class="success-state hidden">
+            <div class="check">✓</div>
+            <h2>Message sent!</h2>
+            <p>Thanks for reaching out — I'll review your inquiry and reply to your email soon.</p>
+        </div>
+    </main>
+
+    <script>
+        // ---- Theme toggle ----
+        const themeToggle = document.getElementById("themeToggle");
+        themeToggle.addEventListener("click", () => {
+            const root = document.documentElement;
+            const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+            const current = root.getAttribute("data-theme") || (systemDark ? "dark" : "light");
+            const next = current === "dark" ? "light" : "dark";
+            root.setAttribute("data-theme", next);
+            localStorage.setItem("theme", next);
+        });
+
+        // FormSubmit.co handles delivery — no backend required.
+        // First submission triggers a one-time confirmation email to activate the endpoint.
+        const ENDPOINT = "https://formsubmit.co/ajax/hello@colinjao.com";
+
+        const form = document.getElementById("contactForm");
+        const btn = document.getElementById("submitBtn");
+        const status = document.getElementById("status");
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            status.textContent = "";
+            status.classList.remove("error");
+
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = "Sending…";
+
+            const data = new FormData(form);
+            data.append("_subject", "New opportunity inquiry — colinjao.com");
+            data.append("_template", "table");
+
+            try {
+                const res = await fetch(ENDPOINT, {
+                    method: "POST",
+                    headers: { "Accept": "application/json" },
+                    body: data
+                });
+
+                if (res.ok) {
+                    document.getElementById("formWrap").classList.add("hidden");
+                    document.getElementById("successState").classList.remove("hidden");
+                } else {
+                    throw new Error("Request failed");
+                }
+            } catch (err) {
+                status.textContent = "Something went wrong. Please email hello@colinjao.com directly.";
+                status.classList.add("error");
+                btn.disabled = false;
+                btn.textContent = "Send inquiry";
+            }
+        });
+    </script>
+</body>
+</html>
