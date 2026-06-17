@@ -98,6 +98,11 @@
             min-height: 100%;
         }
 
+        html {
+            scroll-snap-type: y proximity;
+            scroll-behavior: smooth;
+        }
+
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             color: var(--text);
@@ -107,10 +112,10 @@
             min-height: 100dvh;
             transition: color 0.25s ease;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            /* Extra top padding clears the avatar that overhangs the card's top edge */
-            padding: 84px 20px 32px;
+            justify-content: flex-start;
+            padding: 0;
             -webkit-font-smoothing: antialiased;
         }
 
@@ -134,15 +139,84 @@
             to   { opacity: 1; transform: translateY(0); }
         }
 
+        /* ---- Hero (first screen) ---- */
+        .hero {
+            width: 100%;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 32px;
+            padding: 90px 20px 40px;
+            scroll-snap-align: start;
+        }
+        .hero-card { text-align: center; }
+        .hero-tagline {
+            color: var(--text-muted);
+            font-size: 1.02rem;
+            line-height: 1.55;
+            margin: 16px auto 0;
+            max-width: 34ch;
+        }
+        .hero-meta {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            margin-top: 14px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+        .hero-meta svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+        /* Contact (final screen) */
+        .contact-wrap {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 20px 56px;
+        }
+        .card.card--plain { padding-top: 38px; }
+
+        .scroll-cue {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            animation: bob 1.9s ease-in-out infinite;
+            transition: color 0.18s ease;
+        }
+        .scroll-cue:hover { color: var(--text); }
+        .scroll-cue svg { width: 22px; height: 22px; }
+        @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
+        @media (prefers-reduced-motion: reduce) { .scroll-cue { animation: none; } }
+
         .wordmark {
             display: flex;
             justify-content: center;
             align-items: center;
             gap: 10px;
-            font-size: 1.05rem;
-            font-weight: 700;
-            letter-spacing: 0.01em;
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -0.01em;
             color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .wordmark-subtitle {
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-muted);
             margin-bottom: 14px;
         }
 
@@ -321,7 +395,7 @@
 
         /* ---- Theme toggle ---- */
         .theme-toggle {
-            position: absolute;
+            position: fixed;
             top: 14px;
             right: 14px;
             width: 38px;
@@ -353,10 +427,127 @@
         :root[data-theme="dark"] .icon-sun { display: block; }
         :root[data-theme="dark"] .icon-moon { display: none; }
 
+        /* ---- Summary section (below the card) — editorial, no card chrome ---- */
+        .summary {
+            width: 100%;
+            max-width: 640px;
+            min-height: 100vh;
+            min-height: 100dvh;
+            margin-top: 30px;
+            padding: 90px 32px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            scroll-snap-align: start;
+        }
+
+        .summary-section { margin-bottom: 46px; }
+        .summary-section:last-child { margin-bottom: 0; }
+
+        .grad-text {
+            background: linear-gradient(100deg, var(--accent), var(--accent-2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin: 0 0 18px;
+        }
+        .section-title::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* Big expressive opening statement */
+        .lead {
+            font-size: clamp(1.8rem, 6vw, 2.6rem);
+            font-weight: 800;
+            line-height: 1.12;
+            letter-spacing: -0.03em;
+            margin: 0 0 18px;
+        }
+
+        .about-text {
+            color: var(--text-muted);
+            font-size: 1.02rem;
+            line-height: 1.65;
+            margin: 0;
+            max-width: 46ch;
+        }
+
+        .do-grid { display: grid; gap: 20px; }
+        .do-title { display: block; font-size: 1.35rem; font-weight: 700; letter-spacing: -0.01em; color: var(--text); margin-bottom: 4px; }
+        .do-desc { display: block; font-size: 0.98rem; line-height: 1.55; color: var(--text-muted); max-width: 50ch; }
+
+        /* Highlights as oversized stats */
+        .stats { display: flex; flex-direction: column; gap: 22px; }
+        .stat { display: flex; align-items: center; gap: 18px; }
+        .stat-num {
+            flex-shrink: 0;
+            font-size: clamp(2rem, 7vw, 2.9rem);
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: -0.03em;
+            min-width: 4.2ch;
+            text-align: right;
+        }
+        .stat-desc { font-size: 1rem; line-height: 1.4; color: var(--text-muted); }
+
+        .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+        .chip {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text);
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            padding: 5px 11px;
+            border-radius: 999px;
+        }
+        /* AI / workflow chips — accent-tinted to read as a deliberate group */
+        .chip--ai {
+            color: var(--accent);
+            font-weight: 600;
+            background: rgba(91, 140, 255, 0.10);
+            border-color: rgba(91, 140, 255, 0.32);
+        }
+
+        /* ---- Wider layouts: let the summary use the screen ---- */
+        @media (min-width: 760px) {
+            .summary {
+                max-width: 1080px;
+                padding-left: 56px;
+                padding-right: 56px;
+            }
+            .summary-section { margin-bottom: 64px; }
+            .lead { font-size: clamp(2.4rem, 4.2vw, 3.4rem); }
+            .about-text { font-size: 1.12rem; max-width: 65ch; }
+            .do-grid { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 34px; }
+            .do-desc { max-width: none; }
+            .stats {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 30px 48px;
+            }
+            .stat { align-items: center; }
+        }
+
+        @media (min-width: 1100px) {
+            .stat-num { font-size: 3.2rem; }
+        }
+
         @media (max-width: 520px) {
             body {
-                /* Top padding clears the overhanging avatar; sides tightened for small screens */
-                padding: 70px 14px 22px;
                 /* Fixed backgrounds are janky on mobile Safari — let it scroll */
                 background-attachment: scroll;
             }
@@ -364,6 +555,13 @@
                 padding: 64px 22px 26px;
                 border-radius: 20px;
             }
+            .hero { padding: 80px 14px 36px; gap: 26px; }
+            .contact-wrap { padding: 24px 14px 40px; }
+            .summary {
+                padding: 70px 20px;
+            }
+            .stat { flex-direction: column; gap: 4px; }
+            .stat-num { text-align: left; min-width: 0; }
             .card-avatar {
                 width: 104px;
                 height: 104px;
@@ -383,71 +581,167 @@
     </style>
 </head>
 <body>
-    <main class="card">
-        <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle light and dark mode" title="Toggle light / dark mode">
-            <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="4"></circle>
-                <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
-            </svg>
-            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-            </svg>
-        </button>
-        <img class="card-avatar" src="me.jpg" alt="Colin Jao">
-        <div id="formWrap">
+    <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle light and dark mode" title="Toggle light / dark mode">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+    </button>
+
+    <!-- HERO -->
+    <header class="hero">
+        <div class="card hero-card">
+            <img class="card-avatar" src="me.jpg" alt="Colin Jao">
             <div class="wordmark">Colin Jao</div>
+            <div class="wordmark-subtitle">Software Engineer</div>
             <span class="badge"><span class="dot"></span> Open to new opportunities</span>
-            <h1>Let's build something <span class="grad">great</span> together.</h1>
-            <p class="subtitle">Have a role, project, or idea in mind? Send a few details and I'll get back to you.</p>
+            <p class="hero-tagline">I turn complex business problems into <span class="grad-text">high-impact</span> backend &amp; full-stack software.</p>
+            <div class="hero-meta">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                <span>Dallas, TX · 8+ years experience</span>
+            </div>
+        </div>
+        <a class="scroll-cue" href="#summary" aria-label="Scroll to learn more">
+            <span>Scroll</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+        </a>
+    </header>
 
-            <form id="contactForm" novalidate>
-                <div class="row">
-                    <div class="field">
-                        <label for="name">Name</label>
-                        <input id="name" name="name" type="text" placeholder="Jane Doe" required autocomplete="name">
-                    </div>
-                    <div class="field">
-                        <label for="email">Email</label>
-                        <input id="email" name="email" type="email" placeholder="jane@company.com" required autocomplete="email">
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="field">
-                        <label for="company">Company <span style="opacity:.6">(optional)</span></label>
-                        <input id="company" name="company" type="text" placeholder="Acme Inc." autocomplete="organization">
-                    </div>
-                    <div class="field">
-                        <label for="type">Opportunity type</label>
-                        <select id="type" name="opportunity_type">
-                            <option>Full-time role</option>
-                            <option>Contract</option>
-                            <option>Something else</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="field">
-                    <label for="message">Message</label>
-                    <textarea id="message" name="message" placeholder="Tell me about the opportunity — role, team, tech stack, timeline…" required></textarea>
-                </div>
-
-                <!-- Honeypot: bots fill this, humans never see it -->
-                <input class="honey" type="text" name="_honey" tabindex="-1" autocomplete="off">
-
-                <button id="submitBtn" type="submit">Send inquiry</button>
-                <div id="status" class="status"></div>
-            </form>
-
-            <p class="footer">Based in Dallas, TX · Resume available upon request</p>
+    <!-- SUMMARY -->
+    <section class="summary" id="summary" aria-label="About Colin Jao">
+        <div class="summary-section">
+            <h2 class="section-title">About</h2>
+            <p class="lead">I build systems that stay <span class="grad-text">fast and reliable</span> under real-world load.</p>
+            <p class="about-text">Accountant-turned-software engineer with 8+ years building full-stack and backend platforms across the mortgage, title, and lending space — from micro-frontend architectures to high-throughput, event-driven services.</p>
         </div>
 
-        <div id="successState" class="success-state hidden">
-            <div class="check">✓</div>
-            <h2>Message sent!</h2>
-            <p>Thanks for reaching out — I'll review your inquiry and reply to your email soon.</p>
+        <div class="summary-section">
+            <h2 class="section-title">What I Do</h2>
+            <div class="do-grid">
+                <div class="do-item">
+                    <span class="do-title">Backend &amp; distributed systems</span>
+                    <span class="do-desc">High-throughput, event-driven services that stay fast and reliable under heavy load.</span>
+                </div>
+                <div class="do-item">
+                    <span class="do-title">Front-end architecture</span>
+                    <span class="do-desc">Breaking monoliths into maintainable micro-frontends and building the tooling teams rely on.</span>
+                </div>
+                <div class="do-item">
+                    <span class="do-title">AI-augmented delivery</span>
+                    <span class="do-desc">Spec-first, agentic workflows with automated review — shipping faster without cutting corners.</span>
+                </div>
+            </div>
         </div>
-    </main>
+
+        <div class="summary-section">
+            <h2 class="section-title">Highlights</h2>
+            <div class="stats">
+                <div class="stat">
+                    <span class="stat-num grad-text">&lt;100ms</span>
+                    <span class="stat-desc">Duplicate-lead verdicts across 5,000+ leads a day, from a platform I built scratch-to-production in under a year.</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-num grad-text">40%</span>
+                    <span class="stat-desc">Lower speed-to-lead latency after re-engineering integrations into resilient, event-driven flows.</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-num grad-text">23</span>
+                    <span class="stat-desc">Independent micro-frontends carved out of a legacy monolith, each with its own deployment pipeline.</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-num grad-text">$1.5M</span>
+                    <span class="stat-desc">In funding secured for a hackathon-winning product I prototyped and shipped to MVP.</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="summary-section">
+            <h2 class="section-title">Skills</h2>
+            <div class="chips">
+                <span class="chip">C#</span>
+                <span class="chip">TypeScript</span>
+                <span class="chip">SQL</span>
+                <span class="chip">.NET</span>
+                <span class="chip">Angular</span>
+                <span class="chip">React</span>
+                <span class="chip">Node.js</span>
+                <span class="chip">Redis</span>
+                <span class="chip">PostgreSQL</span>
+                <span class="chip">Cosmos DB</span>
+                <span class="chip">Docker</span>
+                <span class="chip">Kubernetes</span>
+                <span class="chip">AWS</span>
+                <span class="chip">Azure</span>
+                <span class="chip chip--ai">Claude Code</span>
+                <span class="chip chip--ai">Claude Skills</span>
+                <span class="chip chip--ai">Cursor</span>
+                <span class="chip chip--ai">Agentic Workflows</span>
+                <span class="chip chip--ai">MCP</span>
+                <span class="chip chip--ai">Prompt Engineering</span>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- CONTACT -->
+    <section class="contact-wrap" id="contact">
+        <main class="card card--plain">
+            <div id="formWrap">
+                <h1>Let's build something <span class="grad">great</span> together.</h1>
+                <p class="subtitle">Have a role, project, or idea in mind? Send a few details and I'll get back to you.</p>
+
+                <form id="contactForm" novalidate>
+                    <div class="row">
+                        <div class="field">
+                            <label for="name">Name</label>
+                            <input id="name" name="name" type="text" placeholder="Jane Doe" required autocomplete="name">
+                        </div>
+                        <div class="field">
+                            <label for="email">Email</label>
+                            <input id="email" name="email" type="email" placeholder="jane@company.com" required autocomplete="email">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="field">
+                            <label for="company">Company <span style="opacity:.6">(optional)</span></label>
+                            <input id="company" name="company" type="text" placeholder="Acme Inc." autocomplete="organization">
+                        </div>
+                        <div class="field">
+                            <label for="type">Opportunity type</label>
+                            <select id="type" name="opportunity_type">
+                                <option>Full-time role</option>
+                                <option>Contract</option>
+                                <option>Something else</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="message">Message</label>
+                        <textarea id="message" name="message" placeholder="Tell me about the opportunity — role, team, tech stack, timeline…" required></textarea>
+                    </div>
+
+                    <!-- Honeypot: bots fill this, humans never see it -->
+                    <input class="honey" type="text" name="_honey" tabindex="-1" autocomplete="off">
+
+                    <button id="submitBtn" type="submit">Send inquiry</button>
+                    <div id="status" class="status"></div>
+                </form>
+
+                <p class="footer">Based in Dallas, TX</p>
+            </div>
+
+            <div id="successState" class="success-state hidden">
+                <div class="check">✓</div>
+                <h2>Message sent!</h2>
+                <p>Thanks for reaching out — I'll review your inquiry and reply to your email soon.</p>
+            </div>
+        </main>
+    </section>
 
     <script>
         // ---- Theme toggle ----
@@ -463,7 +757,7 @@
 
         // FormSubmit.co handles delivery — no backend required.
         // First submission triggers a one-time confirmation email to activate the endpoint.
-        const ENDPOINT = "https://formsubmit.co/ajax/hello@colinjao.com";
+        const ENDPOINT = "https://formsubmit.co/ajax/\x68\x65\x6c\x6c\x6f\x40\x63\x6f\x6c\x69\x6e\x6a\x61\x6f\x2e\x63\x6f\x6d";
 
         const form = document.getElementById("contactForm");
         const btn = document.getElementById("submitBtn");
@@ -500,7 +794,7 @@
                     throw new Error("Request failed");
                 }
             } catch (err) {
-                status.textContent = "Something went wrong. Please email hello@colinjao.com directly.";
+                status.textContent = "Something went wrong. Please try again later.";
                 status.classList.add("error");
                 btn.disabled = false;
                 btn.textContent = "Send inquiry";
