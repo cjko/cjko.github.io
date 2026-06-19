@@ -141,6 +141,9 @@
 
         /* ---- Hero (first screen) ---- */
         .hero {
+            position: relative;
+            isolation: isolate;
+            overflow: hidden;
             width: 100%;
             min-height: 100vh;
             min-height: 100dvh;
@@ -152,7 +155,67 @@
             padding: 90px 20px 40px;
             scroll-snap-align: start;
         }
-        .hero-card { text-align: center; }
+        /* Dot grid — distorts through the glass, revealing the refraction */
+        .hero::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            background:
+                radial-gradient(rgba(120, 150, 255, 0.32) 1.4px, transparent 1.6px) 0 0 / 24px 24px,
+                radial-gradient(60% 55% at 50% 42%, rgba(91, 140, 255, 0.16), transparent 70%);
+            -webkit-mask: radial-gradient(125% 105% at 50% 42%, #000 35%, transparent 82%);
+                    mask: radial-gradient(125% 105% at 50% 42%, #000 35%, transparent 82%);
+        }
+        /* ---- Elevated hero card ---- */
+        .hero-card {
+            text-align: center;
+            border-color: transparent;
+            background:
+                linear-gradient(160deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.02) 55%),
+                color-mix(in srgb, var(--card) 28%, transparent);
+            -webkit-backdrop-filter: blur(20px) saturate(190%);
+            backdrop-filter: blur(20px) saturate(190%);
+            box-shadow:
+                inset 0 1px 1px rgba(255, 255, 255, 0.55),
+                inset 0 -1px 1px rgba(255, 255, 255, 0.10),
+                inset 0 0 36px rgba(255, 255, 255, 0.04),
+                0 22px 50px rgba(0, 0, 0, 0.28),
+                0 0 40px -28px rgba(91, 140, 255, 0.28);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+        }
+        .card.hero-card { padding-top: 40px; }
+        /* Gradient hairline border */
+        .hero-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1.2px;
+            background: linear-gradient(150deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.12) 35%, transparent 62%, rgba(138, 107, 255, 0.4));
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+                    mask-composite: exclude;
+            pointer-events: none;
+        }
+        .hero-card:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                inset 0 1px 1px rgba(255, 255, 255, 0.62),
+                inset 0 -1px 1px rgba(255, 255, 255, 0.12),
+                inset 0 0 42px rgba(255, 255, 255, 0.06),
+                0 28px 60px rgba(0, 0, 0, 0.32),
+                0 0 56px -24px rgba(91, 140, 255, 0.4);
+        }
+        .hero-id {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            margin-bottom: 16px;
+        }
+        .hero-id-text { text-align: left; }
         .hero-tagline {
             color: var(--text-muted);
             font-size: 1.02rem;
@@ -170,6 +233,40 @@
             font-size: 0.85rem;
         }
         .hero-meta svg { width: 15px; height: 15px; flex-shrink: 0; }
+        .hero-cta {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        .hero-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: inherit;
+            font-size: 0.92rem;
+            font-weight: 600;
+            padding: 11px 20px;
+            border-radius: 12px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: transform 0.12s ease, box-shadow 0.2s ease, border-color 0.18s ease, color 0.18s ease;
+        }
+        .hero-btn svg { width: 16px; height: 16px; }
+        .hero-btn.primary {
+            color: #fff;
+            background: linear-gradient(100deg, var(--accent), var(--accent-2));
+            border: 1px solid transparent;
+            box-shadow: 0 10px 26px rgba(91, 140, 255, 0.32);
+        }
+        .hero-btn.primary:hover { transform: translateY(-1px); box-shadow: 0 14px 32px rgba(91, 140, 255, 0.42); }
+        .hero-btn.ghost {
+            color: var(--text);
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+        }
+        .hero-btn.ghost:hover { border-color: var(--border-focus); color: var(--accent); transform: translateY(-1px); }
 
         /* Contact (final screen) */
         .contact-wrap {
@@ -177,7 +274,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 30px 20px 56px;
+            padding: 30px 20px 110px;
         }
         .card.card--plain { padding-top: 38px; }
 
@@ -201,38 +298,35 @@
         @media (prefers-reduced-motion: reduce) { .scroll-cue { animation: none; } }
 
         .wordmark {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            font-size: 2rem;
+            font-size: 2.1rem;
             font-weight: 800;
-            letter-spacing: -0.01em;
-            color: var(--text);
-            margin-bottom: 4px;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+            margin-bottom: 2px;
+            width: fit-content;
+            background: linear-gradient(120deg, var(--accent), var(--accent-2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .wordmark-subtitle {
-            text-align: center;
             font-size: 1rem;
             font-weight: 500;
             color: var(--text-muted);
-            margin-bottom: 14px;
         }
 
         .card-avatar {
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            box-sizing: content-box;
-            width: 124px;
-            height: 124px;
+            flex-shrink: 0;
+            width: 86px;
+            height: 86px;
             border-radius: 50%;
             object-fit: cover;
-            border: 3px solid var(--border);
-            background: var(--card);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.16);
+            border: 3px solid transparent;
+            background:
+                linear-gradient(var(--card), var(--card)) padding-box,
+                linear-gradient(135deg, var(--accent), var(--accent-2)) border-box;
+            box-shadow: 0 6px 16px rgba(91, 140, 255, 0.22);
         }
 
         .badge {
@@ -556,16 +650,17 @@
                 border-radius: 20px;
             }
             .hero { padding: 80px 14px 36px; gap: 26px; }
-            .contact-wrap { padding: 24px 14px 40px; }
+            .contact-wrap { padding: 24px 14px 80px; }
             .summary {
                 padding: 70px 20px;
             }
             .stat { flex-direction: column; gap: 4px; }
             .stat-num { text-align: left; min-width: 0; }
             .card-avatar {
-                width: 104px;
-                height: 104px;
+                width: 68px;
+                height: 68px;
             }
+            .hero-id { gap: 14px; }
             .row { grid-template-columns: 1fr; }
             h1 { font-size: 1.5rem; }
             .subtitle { font-size: 0.92rem; }
@@ -594,14 +689,24 @@
     <!-- HERO -->
     <header class="hero">
         <div class="card hero-card">
-            <img class="card-avatar" src="me.jpg" alt="Colin Jao">
-            <div class="wordmark">Colin Jao</div>
-            <div class="wordmark-subtitle">Software Engineer</div>
+            <div class="hero-id">
+                <img class="card-avatar" src="me.jpg" alt="Colin Jao">
+                <div class="hero-id-text">
+                    <div class="wordmark">Colin Jao</div>
+                    <div class="wordmark-subtitle">Software Engineer</div>
+                </div>
+            </div>
             <span class="badge"><span class="dot"></span> Open to new opportunities</span>
             <p class="hero-tagline">I turn complex business problems into <span class="grad-text">high-impact</span> backend &amp; full-stack software.</p>
             <div class="hero-meta">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                 <span>Dallas, TX · 8+ years experience</span>
+            </div>
+            <div class="hero-cta">
+                <a class="hero-btn primary" href="#contact">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path><path d="M22 6l-10 7L2 6"></path></svg>
+                    Get in touch
+                </a>
             </div>
         </div>
         <a class="scroll-cue" href="#summary" aria-label="Scroll to learn more">
@@ -731,8 +836,6 @@
                     <button id="submitBtn" type="submit">Send inquiry</button>
                     <div id="status" class="status"></div>
                 </form>
-
-                <p class="footer">Based in Dallas, TX</p>
             </div>
 
             <div id="successState" class="success-state hidden">
