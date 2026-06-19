@@ -641,6 +641,8 @@
         }
 
         @media (max-width: 520px) {
+            /* Scroll-snap hijacks anchor-link navigation on mobile — turn it off here */
+            html { scroll-snap-type: none; }
             body {
                 /* Fixed backgrounds are janky on mobile Safari — let it scroll */
                 background-attachment: scroll;
@@ -856,6 +858,18 @@
             const next = current === "dark" ? "light" : "dark";
             root.setAttribute("data-theme", next);
             localStorage.setItem("theme", next);
+        });
+
+        // ---- Reliable in-page anchor scrolling ----
+        // Native hash jumps land on the wrong section inside a scroll-snap container
+        // (especially on mobile), so handle smooth scrolling ourselves.
+        document.querySelectorAll('a[href^="#"]').forEach((link) => {
+            link.addEventListener("click", (e) => {
+                const target = document.getElementById(link.getAttribute("href").slice(1));
+                if (!target) return;
+                e.preventDefault();
+                target.scrollIntoView({ behavior: "smooth", block: "start" });
+            });
         });
 
         // FormSubmit.co handles delivery — no backend required.
